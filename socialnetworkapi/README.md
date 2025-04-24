@@ -93,9 +93,65 @@ If successful, you'll see a message confirming the connection. If not, the scrip
 
 ## Running the Application
 
+### Option 1: Running Locally
+
 Start the development server:
 ```
 python manage.py runserver
 ```
 
 The API will be available at http://127.0.0.1:8000/
+
+### Option 2: Running with Docker
+
+This project is dockerized, allowing you to run it in containers without installing PostgreSQL or Python dependencies directly on your system.
+
+#### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+#### Building and Running
+
+1. Build and start the containers:
+   ```
+   docker-compose up --build
+   ```
+
+   This will build the Django application image and start both the web and database containers. The application will wait for the database to be ready before starting, thanks to the `wait-for-db.sh` script.
+
+2. Run migrations (first time only):
+   ```
+   docker-compose exec web python manage.py migrate
+   ```
+
+3. Create a superuser (optional):
+   ```
+   docker-compose exec web python manage.py createsuperuser
+   ```
+
+The API will be available at http://localhost:8000/
+
+#### Stopping the Containers
+
+To stop the containers:
+```
+docker-compose down
+```
+
+To stop the containers and remove volumes (this will delete the database data):
+```
+docker-compose down -v
+```
+
+#### Environment Variables
+
+The following environment variables can be configured in the `docker-compose.yml` file:
+
+- `DATABASE_HOST`: PostgreSQL host (default: db)
+- `DATABASE_NAME`: PostgreSQL database name (default: socialnetworkapi)
+- `DATABASE_USER`: PostgreSQL username (default: postgres)
+- `DATABASE_PASSWORD`: PostgreSQL password (default: postgres)
+- `SECRET_KEY`: Django secret key
+- `DEBUG`: Enable/disable debug mode (default: True)
+- `ALLOWED_HOSTS`: Comma-separated list of allowed hosts (default: localhost,127.0.0.1,0.0.0.0)

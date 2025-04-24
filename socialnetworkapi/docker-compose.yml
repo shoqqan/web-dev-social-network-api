@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    command: ["./wait-for-db.sh", "db", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_NAME=socialnetworkapi
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      - SECRET_KEY=django-insecure-c7b-svkp5t3kl_zypj488=72dvu#@7j0m_s5htqqn@507rkn%o
+      - DEBUG=True
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+    volumes:
+      - .:/app
+
+  db:
+    image: postgres:13
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=socialnetworkapi
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

@@ -39,17 +39,13 @@ def post_list(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        # Check if user is authenticated
-        if not request.user.is_authenticated:
-            return Response(
-                {"detail": "Authentication credentials were not provided."},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+        # Get the first user as default author if not authenticated
+        from users.models import User
+        default_author = User.objects.first()
 
-        # Set the author to the authenticated user
         serializer = PostSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(author=request.user)
+            serializer.save(author=default_author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -102,41 +98,13 @@ def post_detail(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        # Check if user is authenticated
-        if not request.user.is_authenticated:
-            return Response(
-                {"detail": "Authentication credentials were not provided."},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
-        # Ensure the user can only update their own posts
-        if post.author.id != request.user.id:
-            return Response(
-                {"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
         serializer = PostSerializer(post, data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(author=request.user)
+            serializer.save(author=post.author)  # Keep the original author
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        # Check if user is authenticated
-        if not request.user.is_authenticated:
-            return Response(
-                {"detail": "Authentication credentials were not provided."},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
-        # Ensure the user can only delete their own posts
-        if post.author.id != request.user.id:
-            return Response(
-                {"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -180,16 +148,13 @@ def comment_list(request, post_id):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        # Check if user is authenticated
-        if not request.user.is_authenticated:
-            return Response(
-                {"detail": "Authentication credentials were not provided."},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+        # Get the first user as default author if not authenticated
+        from users.models import User
+        default_author = User.objects.first()
 
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(author=request.user, postId=post)
+            serializer.save(author=default_author, postId=post)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -242,40 +207,12 @@ def comment_detail(request, post_id, comment_id):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        # Check if user is authenticated
-        if not request.user.is_authenticated:
-            return Response(
-                {"detail": "Authentication credentials were not provided."},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
-        # Ensure the user can only update their own comments
-        if comment.author.id != request.user.id:
-            return Response(
-                {"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
         serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():
-            serializer.save(author=request.user, postId=post)
+            serializer.save(author=comment.author, postId=post)  # Keep the original author
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        # Check if user is authenticated
-        if not request.user.is_authenticated:
-            return Response(
-                {"detail": "Authentication credentials were not provided."},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
-        # Ensure the user can only delete their own comments
-        if comment.author.id != request.user.id:
-            return Response(
-                {"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

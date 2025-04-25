@@ -6,12 +6,13 @@ from .serializers import UserSerializer
 
 # Create your views here.
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def users(request):
     """
-    List all users in the system.
+    List all users in the system or create a new user.
 
-    Returns a list of all users with their details.
+    GET: Returns a list of all users with their details.
+    POST: Creates a new user with the provided data.
 
     * Requires no authentication
     * Available to all users
@@ -20,6 +21,13 @@ def users(request):
         users = User.objects.all()
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def user_detail(request, id=None):
